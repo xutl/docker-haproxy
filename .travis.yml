@@ -1,0 +1,41 @@
+language: bash
+
+sudo: required
+
+services:
+  - docker
+
+env:
+#   Alpine
+  - OS_SUITE=alpine VERSION=1.8.3
+
+before_install:
+  - export DOCKER_COMPOSE_VERSION=1.18.0
+  - sudo rm /usr/local/bin/docker-compose
+  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+  - chmod +x docker-compose
+  - sudo mv docker-compose /usr/local/bin
+
+before_script:
+  - env | sort
+  - cd "$OS_SUITE"
+  - image="xutl/haproxy:${VERSION}-${OS_SUITE}"
+
+script:
+  - travis_retry docker build -t "$image" .
+
+after_success:
+  - if [ "$TRAVIS_BRANCH" == "master" ]; then
+      docker login --username="${DOCKER_REGISTRY_USER}" --password="${DOCKER_REGISTRY_PASSWORD}";
+      docker push $image;
+      docker tag $image xutl/haproxy:${VERSION};
+      docker push xutl/haproxy:${VERSION};
+      if [[ "${VERSION}" == "1.8.3" && "${OS_SUITE}" == "alpine" ]]; then
+        docker tag $image xutl/haproxy:1.8;
+        docker push xutl/haproxy:1.8;
+        docker tag $image xutl/haproxy:latest;
+        docker push xutl/haproxy:latest;
+      fi;
+    fi;
+
+# vim:set et ts=2 sw=2:
