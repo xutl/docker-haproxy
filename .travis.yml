@@ -7,7 +7,7 @@ services:
 
 env:
 #   Alpine
-  - OS_SUITE=alpine VERSION=1.8.3
+  - OS_SUITE=alpine MAJOR_VERSION=1.8 VERSION=1.8.3
 
 before_install:
   - export DOCKER_COMPOSE_VERSION=1.18.0
@@ -30,9 +30,9 @@ after_success:
       docker push $image;
       docker tag $image xutl/haproxy:${VERSION};
       docker push xutl/haproxy:${VERSION};
+      docker tag $image xutl/haproxy:${MAJOR_VERSION};
+      docker push xutl/haproxy:${MAJOR_VERSION};
       if [[ "${VERSION}" == "1.8.3" && "${OS_SUITE}" == "alpine" ]]; then
-        docker tag $image xutl/haproxy:1.8;
-        docker push xutl/haproxy:1.8;
         docker tag $image xutl/haproxy:latest;
         docker push xutl/haproxy:latest;
       fi;
